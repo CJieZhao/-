@@ -1,6 +1,6 @@
 # C++ 代码整理
 ---
-* [c++类成员函数指针使用](Book1.md)
+* [c++类成员函数指针使用](cpp/Book1.md)
 * [Doxygen](Book2.md)
 * [c/c++框架和库](Book3.md)
 * [位运算](Book4.md)

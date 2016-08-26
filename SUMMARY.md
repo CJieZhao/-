@@ -7,3 +7,5 @@
 * [CUDA](cuda/Main.md)
 * [OPENCV](opencv/Main.md)
 * [编程记录](exp/Main.md)
+* [OpenInventor](openinventor/Main.md)
+* [OpenGL](opengl/Main.md)
