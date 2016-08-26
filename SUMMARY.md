@@ -1,11 +1,38 @@
 # SUMMARY
 * [前言](README.md)
-* [C++](cpp/Main.md)
-* [机器学习](ml/Main.md)
-* [Linux](linux/Main.md)
-* [VIM](vim/Main.md)
-* [CUDA](cuda/Main.md)
-* [OPENCV](opencv/Main.md)
-* [编程记录](exp/Main.md)
-* [OpenInventor](openinventor/Main.md)
-* [OpenGL](opengl/Main.md)
+
+* C++ 代码整理
+	* [c++类成员函数指针使用](cpp/Book1.md)
+	* [Doxygen](cpp/Book2.md)
+	* [c/c++框架和库](cpp/Book3.md)
+	* [位运算](cpp/Book4.md)
+	* [epoll](cpp/Book5.md)
+	* [调试Release发布程序的Crash错误](cpp/Book6.md)
+	* [Pimpl设计](cpp/Book7.md)
+	* [判断windows是否64位](cpp/Book8.md)
+	* [zlib用法](cpp/Book9.md)
+	* [int转为float](cpp/Book10.md)
+	* [float&double内存布局](cpp/Book11.md)
+	* [virtual 关键字记录](cpp/Book12.md)
+	* [fopen多线程操作文件](cpp/Book13.md)
+	* Goole 库
+		* [GTest](cpp/BookG1.md)
+		* [Glog](cpp/BookG2.md)
+
+* 机器学习
+	* [混合高斯模型学习笔记](ml/Book1.md)
+	* [LBG](ml/Book2.md)
+
+* Linux
+
+* VIM
+
+* CUDA
+
+* OPENCV
+
+* 编程记录
+
+* OpenInventor
+
+* OpenGL
