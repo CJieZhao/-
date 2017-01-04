@@ -16,10 +16,11 @@
 	* [float&double内存布局](cpp/Book11.md)
 	* [virtual 关键字记录](cpp/Book12.md)
 	* [fopen多线程操作文件](cpp/Book13.md)
-	* Goole 库
+	* Google 库
 		* [GTest](cpp/BookG1.md)
 		* [Glog](cpp/BookG2.md)
 * QT
+	* [QSS](qt/Book1.md)
 
 * 机器学习
 	* [混合高斯模型学习笔记](ml/Book1.md)
