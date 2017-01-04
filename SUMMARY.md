@@ -1,4 +1,5 @@
 # SUMMARY
+---
 * [前言](README.md)
 
 * C++ 代码整理
@@ -18,6 +19,7 @@
 	* Goole 库
 		* [GTest](cpp/BookG1.md)
 		* [Glog](cpp/BookG2.md)
+* QT
 
 * 机器学习
 	* [混合高斯模型学习笔记](ml/Book1.md)
