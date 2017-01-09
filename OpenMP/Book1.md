@@ -59,7 +59,7 @@
         	printf("%d : %d\n", __LINE__, omp_get_thread_num());
 	}
 	```
-1. \#pragma omp parallel sections 并行并指定一个线程的工作内容
+1. \#pragma omp parallel sections 并行并指定一个线程的工作内容<BR>[采用section定义的每段程序都将只执行一次，sections中的每段section将并行执行。一个程序中可以定义多个sections，每个sections中又可以定义多个section。同一个sections中section之间处于并行状态。sections与其他sections之间处于串行状态采用section定义的每段程序都将只执行一次，sections中的每段section将并行执行。一个程序中可以定义多个sections，每个sections中又可以定义多个section。同一个sections中section之间处于并行状态。sections与其他sections之间处于串行状态]
 	
 	``` 
     #pragma omp parallel sections
@@ -86,11 +86,21 @@
 	}
 	```
 
+1. \#pragma omp parallel if () 根据条件判断是否采取并行, true为并行, false为串行
+	```
+	bool isTrue = !false;
+    #pragma omp parallel if (isTrue)
+    {
+        printf("\n");
+    }
+	```
+
 ### 并行同步
 
 1. \#pragma omp master 指定主线程工作内容
 1. \#pragma omp critical 并行中线程临界区块
 1. \#pragma omp barrier 强制等待线程组中全部线程运行到此处
+1. \#pragma omp for nowait 去掉循环结束的强制同步
 
 ## 使用心得
 
@@ -109,11 +119,10 @@
 
 2. 最适用于每次循环不依赖之前循环结果. 相当于每次循环都是相对独立的情况.
 
-	
 	```
 	#pragma omp parallel for
 	for (int i = 0; i < 10; ++i) {
-		printf("%d ");
+		printf("id = %d\n", omp_get_thread_num());
 	}
 	```
 
