@@ -1,5 +1,5 @@
 # zlib 用法
-===
+---
 ## 如何获得zlib
 zlib的主页是:http://www.zlib.net/
 
