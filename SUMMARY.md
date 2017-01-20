@@ -2,9 +2,9 @@
 ---
 * [前言](README.md)
 
-* C++ 代码整理
+* C++ 代码整理和记录
+	* [Doxygen注释工具格式说明](cpp/Doxygen.md)
 	* [c++类成员函数指针使用](cpp/c++ 类成员函数指针使用心得.md)
-	* [Doxygen](cpp/Doxygen.md)
 	* [c, c++框架和库](cpp/c, c++框架和库.md)
 	* [位运算](cpp/位运算.md)
 	* [epoll](cpp/Book5.md)
@@ -19,12 +19,16 @@
 	* Google 库
 		* [GTest](cpp/BookG1.md)
 		* [Glog](cpp/BookG2.md)
+		* [Protocol Buffer](cpp/Protocol Buffer.md)
 * QT
-	* [QSS](qt/Book1.md)
+	* [QSS](qt/qt.md)
 
 * 机器学习
 	* [混合高斯模型学习笔记](ml/Book1.md)
 	* [LBG](ml/Book2.md)
+
+* OpenMP
+	* [OpenMP](OpenMP/OpenMP.md)
 
 * Linux
 
