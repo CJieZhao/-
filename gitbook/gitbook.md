@@ -17,3 +17,14 @@
 
 ### PDF 版
 1. 进入 book 目录, 执行 gitbook pdf
+
+### 多语言版
+
+1. 在书的根目录创建 `LANGS.md` 写入
+
+	```
+	* [Chinese](zh-hans/)
+	* [English](en/)
+	```
+
+2. 创建相应的目录, 放入相应的md文件
