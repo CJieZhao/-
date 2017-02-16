@@ -26,6 +26,7 @@
 * 机器学习
 	* [混合高斯模型学习笔记](ml/Book1.md)
 	* [LBG](ml/Book2.md)
+	* [TensorFlow](TensorFlow/TensorFlow.md)
 
 * OpenMP
 	* [OpenMP](OpenMP/OpenMP.md)
