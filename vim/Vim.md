@@ -363,3 +363,15 @@ vim又一强大功能
 :.,$!sort -> 从当前这行一直执行至文件结束 (sort from current line to end)  
 :.0,$!sort -> 从文件的开始第一个行一直执行到文件结束 (sort from start of file to end)  
 :.10,15!sort -> 只在文件的第10行到第15行之间执行 (sort between line 10 to 15)  
+
+## 复制含有关键字的所有行
+```
+" Clear register A
+:let @a=""
+" Append all lines which matchs book to register A
+:g/book/y A
+" Open a new buffer
+:new
+" Paste content of register A into the new buffer
+:put a
+```
