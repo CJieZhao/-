@@ -1,219 +1,73 @@
 # CUDA
+
 ---
-
-CUDA 是 NVIDIA 的 GPGPU 模型，它使用 C 语言为基础，可以直接以大多数人熟悉的 C 语言，写出在显示芯片上执行的程序，而不需要去学习特定的显示芯片的指令或是特殊的结构。”
-
-
-编者注：NVIDIA的GeFoce 8800GTX发布后，它的通用计算架构CUDA经过一年多的推广后，现在已经在有相当多的论文发表，在商业应用软件等方面也初步出现了视频编解码、金融、地质勘探、科学计算等领域的产品，是时候让我们对其作更深一步的了解。为了让大家更容易了解CUDA，我们征得Hotball的本人同意，发表他最近亲自撰写的本文。这篇文章的特点是深入浅出，也包含了hotball本人编写一些简单CUDA程序的亲身体验，对于希望了解CUDA的读者来说是非常不错的入门文章，PCINLIFE对本文的发表没有作任何的删减，主要是把一些台湾的词汇转换成大陆的词汇以及作了若干"编者注"的注释。
-
-现代的显示芯片已经具有高度的可程序化能力，由于显示芯片通常具有相当高的内存带宽，以及大量的执行单元，因此开始有利用显示芯片来帮助进行一些计算工作的想法，即 GPGPU。CUDA 即是 NVIDIA 的 GPGPU 模型。
-
-NVIDIA 的新一代显示芯片，包括 GeForce 8 系列及更新的显示芯片都支持 CUDA。NVIDIA 免费提供 CUDA 的开发工具（包括 Windows 版本和 Linux 版本）、程序范例、文件等等，可以在 CUDA Zone 下载。
-
-GPGPU 的优缺点 
-
-使用显示芯片来进行运算工作，和使用 CPU 相比，主要有几个好处：
-1.显示芯片通常具有更大的内存带宽。例如，NVIDIA 的 GeForce 8800GTX 具有超过 50GB/s 的内存带宽，而目前高阶 CPU 的内存带宽则在 10GB/s 左右。
-2.显示芯片具有更大量的执行单元。例如 GeForce 8800GTX 具有 128 个 "stream processors"，频率为 1.35GHz。CPU 频率通常较高，但是执行单元的数目则要少得多。
-3.和高阶 CPU 相比，显卡的价格较为低廉。例如目前一张 GeForce 8800GT 包括 512MB 内存的价格，和一颗 2.4GHz 四核心 CPU 的价格相若。
-
-当然，使用显示芯片也有它的一些缺点：
-1.显示芯片的运算单元数量很多，因此对于不能高度并行化的工作，所能带来的帮助就不大。
-2.显示芯片目前通常只支持 32 bits 浮点数，且多半不能完全支持 IEEE 754 规格， 有些运算的精确度可能较低。目前许多显示芯片并没有分开的整数运算单元，因此整数运算的效率较差。
-3.显示芯片通常不具有分支预测等复杂的流程控制单元，因此对于具有高度分支的程序，效率会比较差。
-4.目前 GPGPU 的程序模型仍不成熟，也还没有公认的标准。例如 NVIDIA 和 AMD/ATI 就有各自不同的程序模型。
-
-整体来说，显示芯片的性质类似 stream processor，适合一次进行大量相同的工作。CPU 则比较有弹性，能同时进行变化较多的工作。
-
-
-CUDA 架构
- 
-
-CUDA 是 NVIDIA 的 GPGPU 模型，它使用 C 语言为基础，可以直接以大多数人熟悉的 C 语言，写出在显示芯片上执行的程序，而不需要去学习特定的显示芯片的指令或是特殊的结构。
-
-在 CUDA 的架构下，一个程序分为两个部份：host 端和 device 端。Host 端是指在 CPU 上执行的部份，而 device 端则是在显示芯片上执行的部份。Device 端的程序又称为 "kernel"。通常 host 端程序会将数据准备好后，复制到显卡的内存中，再由显示芯片执行 device 端程序，完成后再由 host 端程序将结果从显卡的内存中取回。
-
-
-
-由于 CPU 存取显卡内存时只能透过 PCI Express 接口，因此速度较慢（PCI Express x16 的理论带宽是双向各 4GB/s），因此不能太常进行这类动作，以免降低效率。
-
-在 CUDA 架构下，显示芯片执行时的最小单位是 thread。数个 thread 可以组成一个 block。一个 block 中的 thread 能存取同一块共享的内存，而且可以快速进行同步的动作。
-
-每一个 block 所能包含的 thread 数目是有限的。不过，执行相同程序的 block，可以组成 grid。不同 block 中的 thread 无法存取同一个共享的内存，因此无法直接互通或进行同步。因此，不同 block 中的 thread 能合作的程度是比较低的。不过，利用这个模式，可以让程序不用担心显示芯片实际上能同时执行的 thread 数目限制。例如，一个具有很少量执行单元的显示芯片，可能会把各个 block 中的 thread 顺序执行，而非同时执行。不同的 grid 则可以执行不同的程序（即 kernel）。
-
-Grid、block 和 thread 的关系，如下图所示：
-
-
-
-每个 thread 都有自己的一份 register 和 local memory 的空间。同一个 block 中的每个 thread 则有共享的一份 share memory。此外，所有的 thread（包括不同 block 的 thread）都共享一份 global memory、constant memory、和 texture memory。不同的 grid 则有各自的 global memory、constant memory 和 texture memory。这些不同的内存的差别，会在之后讨论。
-
-
-执行模式
- 
-
-由于显示芯片大量并行计算的特性，它处理一些问题的方式，和一般 CPU 是不同的。主要的特点包括：
-1.内存存取 latency 的问题：CPU 通常使用 cache 来减少存取主内存的次数，以避免内存 latency 影响到执行效率。显示芯片则多半没有 cache（或很小），而利用并行化执行的方式来隐藏内存的 latency（即，当第一个 thread 需要等待内存读取结果时，则开始执行第二个 thread，依此类推）。
-2.分支指令的问题：CPU 通常利用分支预测等方式来减少分支指令造成的 pipeline bubble。显示芯片则多半使用类似处理内存 latency 的方式。不过，通常显示芯片处理分支的效率会比较差。
-
-因此，最适合利用 CUDA 处理的问题，是可以大量并行化的问题，才能有效隐藏内存的 latency，并有效利用显示芯片上的大量执行单元。使用 CUDA 时，同时有上千个 thread 在执行是很正常的。因此，如果不能大量并行化的问题，使用 CUDA 就没办法达到最好的效率了。
-
- 
-
- 
-
- 
-
-## CUDA Toolkit的安装
-
-
-目前 NVIDIA 提供的 CUDA Toolkit（可从这里下载）支持 Windows （32 bits 及 64 bits 版本）及许多不同的 Linux 版本。
-
-CUDA Toolkit 需要配合 C/C++ compiler。在 Windows 下，目前只支持 Visual Studio 7.x 及 Visual Studio 8（包括免费的 Visual Studio C++ 2005 Express）。Visual Studio 6 和 gcc 在 Windows 下是不支援的。在 Linux 下则只支援 gcc。
-
-这里简单介绍一下在 Windows 下设定并使用 CUDA 的方式。
-
-### 下载及安装 
-
-在 Windows 下，CUDA Toolkit 和 CUDA SDK 都是由安装程序的形式安装的。CUDA Toolkit 包括 CUDA 的基本工具，而 CUDA SDK 则包括许多范例程序以及链接库。基本上要写 CUDA 的程序，只需要安装 CUDA Toolkit 即可。不过 CUDA SDK 仍值得安装，因为里面的许多范例程序和链接库都相当有用。
-
-CUDA Toolkit 安装完后，预设会安装在 C:/CUDA 目录里。其中包括几个目录：
-
-* bin -- 工具程序及动态链接库
-* doc -- 文件
-* include -- header 檔
-* lib -- 链接库档案
-* open64 -- 基于 Open64 的 CUDA compiler
-* src -- 一些原始码
-
-安装程序也会设定一些环境变量，包括：
-
-* CUDA_BIN_PATH -- 工具程序的目录，默认为 C:/CUDA/bin
-* CUDA_INC_PATH -- header 文件的目录，默认为 C:/CUDA/inc
-* CUDA_LIB_PATH -- 链接库文件的目录，默认为 C:/CUDA/lib
-
-
-### 在 Visual Studio 中使用 CUDA
- 
-
-CUDA 的主要工具是 nvcc，它会执行所需要的程序，将 CUDA 程序代码编译成执行档 (或 object 檔) 。在 Visual Studio 下，我们透过设定 custom build tool 的方式，让 Visual Studio 会自动执行 nvcc。
-
-这里以 Visual Studio 2005 为例：
-1.首先，建立一个 Win32 Console 模式的 project（在 Application Settings 中记得勾选 Empty project），并新增一个档案，例如 main.cu。
-2.在 main.cu 上右键单击，并选择 Properties。点选 General，确定 Tool 的部份是选择 Custom Build Tool。
-3.选择 Custom Build Step，在 Command Line 使用以下设定：◦Release 模式："$(CUDA_BIN_PATH)/nvcc.exe" -ccbin "$(VCInstallDir)bin" -c -DWIN32 -D_CONSOLE -D_MBCS -Xcompiler /EHsc,/W3,/nologo,/Wp64,/O2,/Zi,/MT -I"$(CUDA_INC_PATH)" -o $(ConfigurationName)/$(InputName).obj $(InputFileName)
-◦Debug 模式："$(CUDA_BIN_PATH)/nvcc.exe" -ccbin "$(VCInstallDir)bin" -c -D_DEBUG -DWIN32 -D_CONSOLE -D_MBCS -Xcompiler /EHsc,/W3,/nologo,/Wp64,/Od,/Zi,/RTC1,/MTd -I"$(CUDA_INC_PATH)" -o $(ConfigurationName)/$(InputName).obj $(InputFileName)
-
-4.如果想要使用软件仿真的模式，可以新增两个额外的设定：◦EmuRelease 模式："$(CUDA_BIN_PATH)/nvcc.exe" -ccbin "$(VCInstallDir)bin" -deviceemu -c -DWIN32 -D_CONSOLE -D_MBCS -Xcompiler /EHsc,/W3,/nologo,/Wp64,/O2,/Zi,/MT -I"$(CUDA_INC_PATH)" -o $(ConfigurationName)/$(InputName).obj $(InputFileName)
-◦EmuDebug 模式："$(CUDA_BIN_PATH)/nvcc.exe" -ccbin "$(VCInstallDir)bin" -deviceemu -c -D_DEBUG -DWIN32 -D_CONSOLE -D_MBCS -Xcompiler /EHsc,/W3,/nologo,/Wp64,/Od,/Zi,/RTC1,/MTd -I"$(CUDA_INC_PATH)" -o $(ConfigurationName)/$(InputName).obj $(InputFileName)
-
-5.对所有的配置文件，在 Custom Build Step 的 Outputs 中加入 $(ConfigurationName)/$(InputName).obj。
-6.选择 project，右键单击选择 Properties，再点选 Linker。对所有的配置文件修改以下设定：◦General/Enable Incremental Linking：No
-◦General/Additional Library Directories：$(CUDA_LIB_PATH)
-◦Input/Additional Dependencies：cudart.lib
-
-
-这样应该就可以直接在 Visual Studio 的 IDE 中，编辑 CUDA 程序后，直接 build 以及执行程序了。
-
- 
-
----------------------------------------------------------------
-
-CUDA和Visual C++2005 ide的设置比较复杂，OpenHero贡献了解决方案
-
-CUDA VS2005 Wizard：http://blog.csdn.net/OpenHero/archive/2008/04/18/2305856.aspx
-
-visual assist 支持cu文件：http://blog.csdn.net/OpenHero/archive/2008/04/24/2324711.aspx
-
-语法高亮：http://blog.csdn.net/OpenHero/archive/2008/04/17/2301617.aspx
-
- 
-
- 
-
- 
-
- 
-
-### 第一个CUDA程序
-
 
 CUDA 目前有两种不同的 API：Runtime API 和 Driver API，两种 API 各有其适用的范围。由于 runtime API 较容易使用，一开始我们会以 runetime API 为主。
 
-CUDA 的初始化 
+## 查看支持的显卡
 
-首先，先建立一个档案 first_cuda.cu。如果是使用 Visual Studio 的话，则请先按照这里的设定方式设定 project。
-
+首先，先建立一个 first_cuda.cu。
 要使用 runtime API 的时候，需要 include cuda_runtime.h。所以，在程序的最前面，加上
 
-	
-	#include <stdio.h>
-	#include <cuda_runtime.h>
+```
+#include <stdio.h>
+#include <cuda_runtime.h>
 
-	bool InitCUDA()
-	{
-    	int count;
-	
-    	cudaGetDeviceCount(&count);
-    	if(count == 0) {
-        	fprintf(stderr, "There is no device./n");
-	        return false;
-    	}
+bool InitCUDA()
+{
+    int count;
 
-	    int i;
-    	for(i = 0; i < count; i++) {
-        	cudaDeviceProp prop;
-	        if(cudaGetDeviceProperties(&prop, i) == cudaSuccess) {
-    	        if(prop.major >= 1) {
-        	        break;
-            	}
-        	}
-    	}
+    cudaGetDeviceCount(&count);
+    if(count == 0) {
+        fprintf(stderr, "There is no device./n");
+        return false;
+    }
 
-    	if(i == count) {
-        	fprintf(stderr, "There is no device supporting CUDA 1.x./n");
-	        return false;
-    	}
+    int i = 0;
+    for (i = 0; i < count; ++i) {
+        cudaDeviceProp prop;
 
-	    cudaSetDevice(i);
-	
-    	return true;
-	}
-	
+        if (cudaGetDeviceProperties(&prop, i) == cudaSuccess) {
+            printf("%d, %d, %s\n", prop.major, prop.minor, prop.name);
 
-这个函式会先呼叫 cudaGetDeviceCount 函式，取得支持 CUDA 的装置的数目。如果系统上没有支持 CUDA 的装置，则它会传回 1，而 device 0 会是一个仿真的装置，但不支持 CUDA 1.0 以上的功能。所以，要确定系统上是否有支持 CUDA 的装置，需要对每个 device 呼叫 cudaGetDeviceProperties 函式，取得装置的各项数据，并判断装置支持的 CUDA 版本（prop.major 和 prop.minor 分别代表装置支持的版本号码，例如 1.0 则 prop.major 为 1 而 prop.minor 为 0）。
+            if (prop.major >= 1) {
+                break;
+            }
+        }
+    }
+
+    if (i == count) {
+        fprintf(stderr, "There is no device supporting CUDA 1.x./n");
+        return false;
+    }
+
+    // 设置
+    cudaSetDevice(i);
+
+    return true;
+}
+
+int main()
+{
+    if(!InitCUDA()) {
+        return 0;
+    }
+
+    printf("CUDA initialized.\n");
+
+    return 0;
+}
+```
+
+这个函式会先调用 cudaGetDeviceCount 函式，取得支持 CUDA 的装置的数目。如果系统上没有支持 CUDA 的装置，则它会返回 1，而 device 0 会是一个仿真的装置，但不支持 CUDA 1.0 以上的功能。所以，要确定系统上是否有支持 CUDA 的装置，需要对每个 device 调用 cudaGetDeviceProperties 函式，取得装置的各项数据，并判断装置支持的 CUDA 版本（prop.major 和 prop.minor 分别代表装置支持的版本号码，例如 1.0 则 prop.major 为 1 而 prop.minor 为 0）。
 
 透过 cudaGetDeviceProperties 函式可以取得许多数据，除了装置支持的 CUDA 版本之外，还有装置的名称、内存的大小、最大的 thread 数目、执行单元的频率等等。详情可参考 NVIDIA 的 CUDA Programming Guide。
 
-在找到支持 CUDA 1.0 以上的装置之后，就可以呼叫 cudaSetDevice 函式，把它设为目前要使用的装置。
+在找到支持 CUDA 1.0 以上的装置之后，就可以调用 cudaSetDevice 函式，把它设为目前要使用的装置。
 
-最后是 main 函式。在 main 函式中我们直接呼叫刚才的 InitCUDA 函式，并显示适当的讯息：
+### 求和
 
-	int main()
-	{
-    	if(!InitCUDA()) {
-        	return 0;
-	    }
-
-    	printf("CUDA initialized./n");
-
-	    return 0;
-	}
-
-这样就可以利用 nvcc 来 compile 这个程序了。使用 Visual Studio 的话，若按照先前的设定方式，可以直接 Build Project 并执行。
-
-nvcc 是 CUDA 的 compile 工具，它会将 .cu 檔拆解出在 GPU 上执行的部份，及在 host 上执行的部份，并呼叫适当的程序进行 compile 动作。在 GPU 执行的部份会透过 NVIDIA 提供的 compiler 编译成中介码，而 host 执行的部份则会透过系统上的 C++ compiler 编译（在 Windows 上使用 Visual C++ 而在 Linux 上使用 gcc）。
-
-编译后的程序，执行时如果系统上有支持 CUDA 的装置，应该会显示 CUDA initialized. 的讯息，否则会显示相关的错误讯息。
-
-
-利用 CUDA 进行运算
- 
-
-
-到目前为止，我们的程序并没有做什么有用的工作。所以，现在我们加入一个简单的动作，就是把一大堆数字，计算出它的平方和。
-
-首先，把程序最前面的 include 部份改成：
-
+```
 #include <stdio.h>
 #include <stdlib.h>
 #include <cuda_runtime.h>
@@ -222,78 +76,16 @@ nvcc 是 CUDA 的 compile 工具，它会将 .cu 檔拆解出在 GPU 上执行�
 
 int data[DATA_SIZE];
 
-
-并加入一个新函式 GenerateNumbers：
-
-void GenerateNumbers(int *number, int size)
+// 这个函式会产生 size 个 0 ~ 9 之间的随机数, __host__ 表示 CPU 调用，CPU 执行
+__host__ void GenerateNumbers(int *number, int size)
 {
     for(int i = 0; i < size; i++) {
         number[i] = rand() % 10;
     }
 }
 
-这个函式会产生一大堆 0 ~ 9 之间的随机数。
-
-要利用 CUDA 进行计算之前，要先把数据复制到显卡内存中，才能让显示芯片使用。因此，需要取得一块适当大小的显卡内存，再把产生好的数据复制进去。在 main 函式中加入：
-
-    GenerateNumbers(data, DATA_SIZE);
-
-    int* gpudata, *result;
-    cudaMalloc((void**) &gpudata, sizeof(int) * DATA_SIZE);
-    cudaMalloc((void**) &result, sizeof(int));
-    cudaMemcpy(gpudata, data, sizeof(int) * DATA_SIZE,
-        cudaMemcpyHostToDevice);
-
-上面这段程序会先呼叫 GenerateNumbers 产生随机数，并呼叫 cudaMalloc 取得一块显卡内存（result 则是用来存取计算结果，在稍后会用到），并透过 cudaMemcpy 将产生的随机数复制到显卡内存中。cudaMalloc 和 cudaMemcpy 的用法和一般的 malloc 及 memcpy 类似，不过 cudaMemcpy 则多出一个参数，指示复制内存的方向。在这里因为是从主内存复制到显卡内存，所以使用 cudaMemcpyHostToDevice。如果是从显卡内存到主内存，则使用 cudaMemcpyDeviceToHost。这在之后会用到。
-
-接下来是要写在显示芯片上执行的程序。在 CUDA 中，在函式前面加上 __global__ 表示这个函式是要在显示芯片上执行的。因此，加入以下的函式：
-
-__global__ static void sumOfSquares(int *num, int* result)
-{
-    int sum = 0;
-    int i;
-    for(i = 0; i < DATA_SIZE; i++) {
-        sum += num[i] * num[i];
-    }
-
-    *result = sum;
-}
-
-在显示芯片上执行的程序有一些限制，例如它不能有传回值。其它的限制会在之后提到。
-
-接下来是要让 CUDA 执行这个函式。在 CUDA 中，要执行一个函式，使用以下的语法：
-
-    函式名称<<<block 数目, thread 数目, shared memory 大小>>>(参数...);
-
-呼叫完后，还要把结果从显示芯片复制回主内存上。在 main 函式中加入以下的程序：
-
-    sumOfSquares<<<1, 1, 0>>>(gpudata, result);
-
-    int sum;
-    cudaMemcpy(&sum, result, sizeof(int), cudaMemcpyDeviceToHost);
-    cudaFree(gpudata);
-    cudaFree(result);
-
-    printf("sum: %d/n", sum);
-
-因为这个程序只使用一个 thread，所以 block 数目、thread 数目都是 1。我们也没有使用到任何 shared memory，所以设为 0。编译后执行，应该可以看到执行的结果。
-
-为了确定执行的结果正确，我们可以加上一段以 CPU 执行的程序代码，来验证结果：
-
-    sum = 0;
-    for(int i = 0; i < DATA_SIZE; i++) {
-        sum += data[i] * data[i];
-    }
-    printf("sum (CPU): %d/n", sum);
-
-编译后执行，确认两个结果相同。
-
-计算运行时间 
- 
-CUDA 提供了一个 clock 函式，可以取得目前的 timestamp，很适合用来判断一段程序执行所花费的时间（单位为 GPU 执行单元的频率）。这对程序的优化也相当有用。要在我们的程序中记录时间，把 sumOfSquares 函式改成：
-
-__global__ static void sumOfSquares(int *num, int* result,
-    clock_t* time)
+// __global__ 表示 CPU 调用 GPU 执行
+__global__ static void sumOfSquares(int *num, int* result, clock_t* time)
 {
     int sum = 0;
     int i;
@@ -306,34 +98,48 @@ __global__ static void sumOfSquares(int *num, int* result,
     *time = clock() - start;
 }
 
-把 main 函式中间部份改成：
-
+int main()
+{
+    // 生成待测试随机数
+    GenerateNumbers(data, DATA_SIZE);
+    
     int* gpudata, *result;
     clock_t* time;
+
+    // 分配显存，将数据从内存拷贝至显存
     cudaMalloc((void**) &gpudata, sizeof(int) * DATA_SIZE);
     cudaMalloc((void**) &result, sizeof(int));
     cudaMalloc((void**) &time, sizeof(clock_t));
-    cudaMemcpy(gpudata, data, sizeof(int) * DATA_SIZE,
-        cudaMemcpyHostToDevice);
 
+    // 主内存复制到显卡内存 cudaMemcpyHostToDevice。 显卡内存到主内存 cudaMemcpyDeviceToHost。
+    cudaMemcpy(gpudata, data, sizeof(int) * DATA_SIZE, cudaMemcpyHostToDevice);
+
+    // 调用CUDA函数
     sumOfSquares<<<1, 1, 0>>>(gpudata, result, time);
 
     int sum;
     clock_t time_used;
     cudaMemcpy(&sum, result, sizeof(int), cudaMemcpyDeviceToHost);
-    cudaMemcpy(&time_used, time, sizeof(clock_t),
-        cudaMemcpyDeviceToHost);
+    cudaMemcpy(&time_used, time, sizeof(clock_t), cudaMemcpyDeviceToHost);
     cudaFree(gpudata);
     cudaFree(result);
-
-
     printf("sum: %d time: %d/n", sum, time_used);
 
-编译后执行，就可以看到执行所花费的时间了。
+    // CPU 端计算结果
+    sum = 0;
+    for(int i = 0; i < DATA_SIZE; i++) {
+        sum += data[i] * data[i];
+    }
+    printf("sum (CPU): %d/n", sum);
+}
+```
 
-如果计算实际运行时间的话，可能会注意到它的执行效率并不好。这是因为我们的程序并没有利用到 CUDA 的主要的优势，即并行化执行。在下一段文章中，会讨论如何进行优化的动作。
+在显示芯片上执行的程序有一些限制，例如它不能有传回值。
+CUDA执行函数格式为：
 
- 
+```
+函式名称<<<block 数目, thread 数目, shared memory 大小, 运行流>>>(参数...);
+```
 
 在上一篇文章中，我们做了一个计算一大堆数字的平方和的程序。不过，我们也提到这个程序的执行效率并不理想。当然，实际上来说，如果只是要做计算平方和的动作，用 CPU 做会比用 GPU 快得多。这是因为平方和的计算并不需要太多运算能力，所以几乎都是被内存带宽所限制。因此，光是把数据复制到显卡内存上的这个动作，所需要的时间，可能已经和直接在 CPU 上进行计算差不多了。
 
@@ -384,17 +190,14 @@ __global__ static void sumOfSquares(int *num, int* result,
     cudaMalloc((void**) &gpudata, sizeof(int) * DATA_SIZE);
     cudaMalloc((void**) &result, sizeof(int) * THREAD_NUM);
     cudaMalloc((void**) &time, sizeof(clock_t));
-    cudaMemcpy(gpudata, data, sizeof(int) * DATA_SIZE,
-        cudaMemcpyHostToDevice);
+    cudaMemcpy(gpudata, data, sizeof(int) * DATA_SIZE, cudaMemcpyHostToDevice);
 
     sumOfSquares<<<1, THREAD_NUM, 0>>>(gpudata, result, time);
 
     int sum[THREAD_NUM];
     clock_t time_used;
-    cudaMemcpy(∑, result, sizeof(int) * THREAD_NUM, 
-        cudaMemcpyDeviceToHost);
-    cudaMemcpy(&time_used, time, sizeof(clock_t),
-        cudaMemcpyDeviceToHost);
+    cudaMemcpy(∑, result, sizeof(int) * THREAD_NUM, cudaMemcpyDeviceToHost);
+    cudaMemcpy(&time_used, time, sizeof(clock_t), cudaMemcpyDeviceToHost);
     cudaFree(gpudata);
     cudaFree(result);
     cudaFree(time);
@@ -490,21 +293,16 @@ main 函式部份，修改成：
     int* gpudata, *result;
     clock_t* time;
     cudaMalloc((void**) &gpudata, sizeof(int) * DATA_SIZE);
-    cudaMalloc((void**) &result,
-        sizeof(int) * THREAD_NUM * BLOCK_NUM);
+    cudaMalloc((void**) &result, sizeof(int) * THREAD_NUM * BLOCK_NUM);
     cudaMalloc((void**) &time, sizeof(clock_t) * BLOCK_NUM * 2);
-    cudaMemcpy(gpudata, data, sizeof(int) * DATA_SIZE,
-        cudaMemcpyHostToDevice);
+    cudaMemcpy(gpudata, data, sizeof(int) * DATA_SIZE, cudaMemcpyHostToDevice);
 
-    sumOfSquares<<<BLOCK_NUM, THREAD_NUM, 0>>>(gpudata, result, 
-        time);
+    sumOfSquares<<<BLOCK_NUM, THREAD_NUM, 0>>>(gpudata, result, time);
 
     int sum[THREAD_NUM * BLOCK_NUM];
     clock_t time_used[BLOCK_NUM * 2];
-    cudaMemcpy(∑, result, sizeof(int) * THREAD_NUM * BLOCK_NUM,
-        cudaMemcpyDeviceToHost);
-    cudaMemcpy(&time_used, time, sizeof(clock_t) * BLOCK_NUM * 2,
-        cudaMemcpyDeviceToHost);
+    cudaMemcpy(∑, result, sizeof(int) * THREAD_NUM * BLOCK_NUM, cudaMemcpyDeviceToHost);
+    cudaMemcpy(&time_used, time, sizeof(clock_t) * BLOCK_NUM * 2, cudaMemcpyDeviceToHost);
     cudaFree(gpudata);
     cudaFree(result);
     cudaFree(time);
@@ -670,7 +468,6 @@ __global__ static void sumOfSquares(int *num, int* result,
     if(tid < 1) { shared[tid] += shared[tid + 1]; }
     __syncthreads();
 
-当然这只适用于 THREAD_NUM 是 256 的情形。这样可以再省下约 1000 cycles 左右（约 44GB/s）。最后完整的程序文件可以从这里下载。
 
  
 
@@ -1300,3 +1097,5 @@ compiler 会自动把适当的加法和乘法运算，结合成一个 fmad 指�
 
 
 
+## 流
+https://blog.csdn.net/u010335328/article/details/52453499
