@@ -50,3 +50,8 @@
 
 * OpenBLAS
 	* [函数说明](OpenBLAS/book1.md)
+
+* Golang
+	* [类和多态](Go/Go.md)
+	* [包管理工具Dep](Go/GoDep.md)
+	* [新包管理工具Module](Go/GoModule.md)
