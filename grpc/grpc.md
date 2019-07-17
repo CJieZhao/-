@@ -81,6 +81,40 @@ protoc.exe %CMD2%
 @pause
 ```
 
+## GRPC 四种交互模式
+
+1. 简单 RPC， 类似函数调用
+
+    ```
+    service UserService {
+        rpc GetUserInfo (UserRequest) returns (UserResponse);
+    }
+    ```
+
+1. 服务端流 RPC, 客户端发送结构，服务端返回流
+
+    ```
+    service UserService {
+        rpc GetUserInfo (UserRequest) returns (stream UserResponse);
+    }
+    ```
+
+1. 客户端流 RPC, 客户端发送流，服务端返回结构
+
+    ```
+    service UserService {
+        rpc GetUserInfo (stream UserRequest) returns (UserResponse);
+    }
+    ```
+
+1. 双向流 RPC，客户端发送流，服务端返回流
+
+    ```
+    service UserService {
+        rpc GetUserInfo (stream UserRequest) returns (stream UserResponse);
+    }
+    ```
+
 ## GRPC 使用 TLS 证书进行访问
 
 ###  使用 `Openssl` 生成证书文件
@@ -103,6 +137,18 @@ protoc.exe %CMD2%
     Common Name (eg, your name or your server's hostname) []:grpc server name
     Email Address []:
     ```
+1. 查看公钥过期时间
+
+    命令格式 `openssl x509 -enddate -noout -in server.pem`，其中 `server.pem` 为之前生成的公钥文件
+    显示格式 `notAfter=Jul 14 02:35:22 2029 GMT`
+
+1. 查看公钥全部信息
+
+    命令格式 `openssl x509 -in server.pem -noout -text`，其中 `server.pem` 为之前生成的公钥文件
+
+1. 将PEM转换为CRT(.CRT文件)
+
+    命令格式 `openssl x509 -outform der -in server.pem -out certificate.crt`
 
 ###  Golang 使用TLS证书
 
