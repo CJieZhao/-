@@ -48,7 +48,7 @@ service ProjectService {
 
 ## 从 Protobuf 生成代码脚本
 
-如下脚本支持从原生 `Protobuf` 和 `GRPC`扩展， 生成 `C++` `C#` `Golang`的代码
+如下BAT脚本支持从原生 `Protobuf` 和 `GRPC`扩展， 生成 `C++` `C#` `Golang`的代码
 
 ```
 @echo off
@@ -68,7 +68,7 @@ for /f "delims=\" %%a in ('dir /b /a-d /o-d "%PROTOPATH%\*.proto"') do (
 
 SET "CMD0=--proto_path=%PROTOPATH% --plugin=protoc-gen-grpc=.\grpc_cpp_plugin.exe --grpc_out=%PROTOPATH% %ALLFILE%"
 SET "CMD1=--proto_path=%PROTOPATH% --plugin=protoc-gen-grpc=.\grpc_csharp_plugin.exe --grpc_out=%PROTOPATH% %ALLFILE%"
-SET "CMD2=--proto_path=%PROTOPATH% --go_out=plugins=grpc:%PROTOPATH% --cpp_out=%PROTOPATH% %ALLFILE%"
+SET "CMD2=--proto_path=%PROTOPATH% --go_out=plugins=grpc:%PROTOPATH% --cpp_out=%PROTOPATH% --csharp_out=%PROTOPATH% %ALLFILE%"
 
 REM ECHO %CMD0%
 REM ECHO %CMD1%
@@ -177,3 +177,16 @@ conn, err := grpc.Dial(":"+PORT, grpc.WithTransportCredentials(c))
 ```
 
 ### C++ 使用TLS证书
+
+### C# 使用TLS证书
+
+```
+var channelCredentials = new SslCredentials(File.ReadAllText("server.crt"));
+var channOptions = new List<ChannelOption>
+{
+    new ChannelOption(ChannelOptions.SslTargetNameOverride, "UpdateServer")
+};
+
+channel = new Channel($"{ip}:{port}", channelCredentials, channOptions);
+client = new UpdateService.UpdateServiceClient(channel);
+```
