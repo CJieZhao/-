@@ -59,7 +59,7 @@
         	printf("%d : %d\n", __LINE__, omp_get_thread_num());
 	}
 	```
-1. \#pragma omp parallel sections 并行并指定一个线程的工作内容<BR>[采用section定义的每段程序都将只执行一次，sections中的每段section将并行执行。一个程序中可以定义多个sections，每个sections中又可以定义多个section。同一个sections中section之间处于并行状态。sections与其他sections之间处于串行状态采用section定义的每段程序都将只执行一次，sections中的每段section将并行执行。一个程序中可以定义多个sections，每个sections中又可以定义多个section。同一个sections中section之间处于并行状态。sections与其他sections之间处于串行状态]
+1. \#pragma omp parallel sections 并行并指定一个线程的工作内容<BR>[采用section定义的每段程序都将只执行一次，sections中的每段section将并行执行。一个程序中可以定义多个sections，每个sections中又可以定义多个section。同一个sections中section之间处于并行状态。sections与其他sections之间处于串行状态]
 	
 	``` 
     #pragma omp parallel sections
