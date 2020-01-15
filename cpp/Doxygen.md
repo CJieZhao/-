@@ -20,13 +20,13 @@
 
 ## 函数定义格式
 
-	/**
-	* @brief $end$
-	* 
-	* @param : $MethodArg$
-	* @return : $SymbolType$
-	* @author CJie
-	* @date $DATE$
-	* @remark 1.$DATE$ $HOUR$:$MINUTE$ created by CJie
-	* @See
-	*/
+/**
+* @brief $end$
+* 
+* @param : $MethodArg$
+* @return : $SymbolType$
+* @author CJie
+* @date $DATE$
+* @remark 1.$DATE$ $HOUR$:$MINUTE$ created by CJie
+* @See
+*/
