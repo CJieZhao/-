@@ -6,6 +6,7 @@
 	* [Doxygen注释工具格式说明](cpp/Doxygen.md)
 	* [c++类成员函数指针使用](cpp/c++ 类成员函数指针使用心得.md)
 	* [c, c++框架和库](cpp/c, c++框架和库.md)
+	* [C++ 协变](cpp/C++ 协变.md)
 	* [位运算](cpp/位运算.md)
 	* [epoll](cpp/Book5.md)
 	* [调试Release发布程序的Crash错误](cpp/Book6.md)
