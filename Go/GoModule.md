@@ -55,7 +55,7 @@ Golang 内部支持的包管理工具，支持代理。可以解决GRPC等库在
 
 1. 相关的环境变量
     
-    1. GO111MODULE 是否使用 GOPATH。可选参数有    `auto`, `on`,`off`。
+    1. GO111MODULE 是否使用 GOPATH。可选参数有    `auto`, `on`, `off`。
     1. GOPROXY 依赖包下载代理，使用代理下载可以不用路径替换。目前支持的有 [goproxy](https://goproxy.io)
 
 ## 测试例子
